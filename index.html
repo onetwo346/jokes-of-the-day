@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOTD - Infinite Jokes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00ffcc;
+            --secondary: #ff00cc;
+            --accent: #ff6b35;
+            --dark: #0a0a0a;
+            --darker: #050505;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-hover: rgba(255, 255, 255, 0.15);
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            min-height: 100vh;
+            background: var(--dark);
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Cyberpunk Background */
+        .cyber-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 107, 53, 0.05) 0%, transparent 50%),
+                linear-gradient(45deg, var(--darker), var(--dark));
+            z-index: -2;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 204, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 204, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--darker);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 2rem;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% { text-shadow: 0 0 20px var(--primary); }
+            100% { text-shadow: 0 0 40px var(--primary), 0 0 60px var(--primary); }
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+            animation: loadingFill 2s ease-in-out;
+        }
+
+        @keyframes loadingFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* Main Container */
+        .main-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 18px rgba(0, 255, 204, 0.2);
+            animation: titleFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes titleFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 300;
+        }
+
+        .auto-play-info {
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-top: 0.5rem;
+            font-weight: 400;
+        }
+
+        /* Joke Display */
+        .joke-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .joke-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2.5rem 1rem 1.5rem 1rem; /* extra top padding for badge */
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .joke-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .joke-card:hover::before {
+            left: 100%;
+        }
+
+        .joke-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary);
+        }
+
+        .joke-text {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-top: 0.7rem;
+            margin-bottom: 1.2rem;
+            font-weight: 400;
+            color: #fff;
+        }
+
+        .joke-category {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.7rem 1.3rem;
+            border: none;
+            border-radius: 32px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Exo 2', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Auto-play button special styling */
+        .btn-secondary#autoPlayBtn {
+            background: linear-gradient(45deg, var(--accent), var(--secondary));
+            border-color: var(--accent);
+        }
+
+        .btn-secondary#autoPlayBtn:hover {
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: var(--glass);
+            padding: 0.7rem 1.2rem;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 0.5rem;
+        }
+
+        /* Floating Elements */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(2n) {
+            background: var(--secondary);
+            animation-duration: 8s;
+        }
+
+        .floating-element:nth-child(3n) {
+            background: var(--accent);
+            animation-duration: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0; }
+            50% { transform: translateY(-100px) rotate(180deg); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .title { font-size: 2.5rem; }
+            .joke-card { padding: 2rem; }
+            .joke-text { font-size: 1.2rem; }
+            .controls { flex-direction: column; align-items: center; }
+            .stats { gap: 1rem; }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            color: white;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">Jokes of the Day</div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+
+    <!-- Background -->
+    <div class="cyber-bg"></div>
+    <div class="grid-overlay"></div>
+    <div class="floating-elements">
+        <div class="floating-element" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="floating-element" style="left: 20%; animation-delay: 1s;"></div>
+        <div class="floating-element" style="left: 30%; animation-delay: 2s;"></div>
+        <div class="floating-element" style="left: 40%; animation-delay: 3s;"></div>
+        <div class="floating-element" style="left: 50%; animation-delay: 4s;"></div>
+        <div class="floating-element" style="left: 60%; animation-delay: 5s;"></div>
+        <div class="floating-element" style="left: 70%; animation-delay: 6s;"></div>
+        <div class="floating-element" style="left: 80%; animation-delay: 7s;"></div>
+        <div class="floating-element" style="left: 90%; animation-delay: 8s;"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <header class="header">
+            <h1 class="title">Infinite Jokes</h1>
+            <p class="subtitle">Unlimited laughs, zero repeats</p>
+            <p class="auto-play-info">Auto-playing every 5 seconds • Press P to pause/resume</p>
+        </header>
+
+        <main class="joke-section">
+            <div class="joke-card" id="jokeCard">
+                <div class="joke-category" id="jokeCategory">Random</div>
+                <div class="joke-text" id="jokeText">
+                    Click the button to get your first joke!
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="getNewJoke()">
+                    <i class="fas fa-dice"></i> New Joke
+                </button>
+                <button class="btn btn-secondary" onclick="toggleAutoPlay()" id="autoPlayBtn">
+                    <i class="fas fa-pause"></i> Pause
+                </button>
+                <button class="btn btn-secondary" onclick="toggleFavorite()" id="favoriteBtn">
+                    <i class="far fa-heart"></i> Favorite
+                </button>
+                <button class="btn btn-secondary" onclick="shareJoke()">
+                    <i class="fas fa-share"></i> Share
+                </button>
+                <button class="btn btn-secondary" onclick="copyJoke()">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="jokesSeen">0</div>
+                    <div class="stat-label">Jokes Seen</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="favoritesCount">0</div>
+                    <div class="stat-label">Favorites</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="uniqueCategories">0</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Global variables
+        let jokesSeen = 0;
+        let favorites = [];
+        let seenJokes = new Set();
+        let categories = new Set();
+        let currentJoke = null;
+        let autoPlayInterval = null;
+        let isAutoPlaying = true;
+        let autoPlayDelay = 5000; // 5 seconds between jokes
+
+        // Joke APIs (all free)
+        const jokeAPIs = [
+            {
+                name: 'Dad Jokes',
+                url: 'https://icanhazdadjoke.com/',
+                headers: { 'Accept': 'application/json' },
+                extract: (data) => ({ text: data.joke, category: 'Dad Joke' })
+            },
+            {
+                name: 'Chuck Norris',
+                url: 'https://api.chucknorris.io/jokes/random',
+                headers: {},
+                extract: (data) => ({ text: data.value, category: 'Chuck Norris' })
+            },
+            {
+                name: 'JokeAPI',
+                url: 'https://v2.jokeapi.dev/joke/Any?safe-mode',
+                headers: {},
+                extract: (data) => {
+                    const text = data.type === 'single' ? data.joke : `${data.setup}\n\n${data.delivery}`;
+                    return { text, category: data.category }
+                }
+            }
+        ];
+
+        // Initialize app
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').style.display = 'none';
+                }, 500);
+            }, 2000);
+        });
+
+        // Get new joke
+        async function getNewJoke() {
+            const jokeCard = document.getElementById('jokeCard');
+            const jokeText = document.getElementById('jokeText');
+            
+            // Add loading animation
+            jokeCard.classList.add('shake');
+            jokeText.textContent = 'Loading...';
+            
+            try {
+                // Try multiple APIs to ensure variety
+                let joke = null;
+                let attempts = 0;
+                
+                while (!joke && attempts < 10) {
+                    const api = jokeAPIs[Math.floor(Math.random() * jokeAPIs.length)];
+                    try {
+                        const response = await fetch(api.url, { headers: api.headers });
+                        const data = await response.json();
+                        joke = api.extract(data);
+                        
+                        // Check if we've seen this joke before
+                        if (seenJokes.has(joke.text)) {
+                            joke = null;
+                            attempts++;
+                            continue;
+                        }
+                    } catch (error) {
+                        attempts++;
+                        continue;
+                    }
+                }
+
+                if (joke) {
+                    currentJoke = joke;
+                    seenJokes.add(joke.text);
+                    categories.add(joke.category);
+                    jokesSeen++;
+                    
+                    // Update display
+                    jokeText.textContent = joke.text;
+                    document.getElementById('jokeCategory').textContent = joke.category;
+                    
+                    // Update stats
+                    document.getElementById('jokesSeen').textContent = jokesSeen;
+                    document.getElementById('uniqueCategories').textContent = categories.size;
+                    
+                    // Add fade-in animation
+                    jokeCard.classList.remove('shake');
+                    jokeCard.classList.add('fade-in');
+                    setTimeout(() => jokeCard.classList.remove('fade-in'), 500);
+                    
+                    // Update favorite button
+                    updateFavoriteButton();
+                    
+                    showToast('New joke loaded! 🎭');
+                } else {
+                    jokeText.textContent = 'Could not load a new joke. Try again!';
+                    showToast('Error loading joke 😅');
+                }
+            } catch (error) {
+                jokeText.textContent = 'Something went wrong. Try again!';
+                showToast('Network error 🌐');
+            }
+        }
+
+        // Toggle favorite
+        function toggleFavorite() {
+            if (!currentJoke) return;
+            
+            const favoriteBtn = document.getElementById('favoriteBtn');
+            const isFavorite = favorites.some(f => f.text === currentJoke.text);
+            
+            if (isFavorite) {
+                favorites = favorites.filter(f => f.text !== currentJoke.text);
+                favoriteBtn.innerHTML = '<i class="far fa-heart"></i> Favorite';
+                showToast('Removed from favorites 💔');
+            } else {
+                favorites.push(currentJoke);
+                favoriteBtn.innerHTML = '<i class="fas fa-heart"></i> Favorited';
+                showToast('Added to favorites ❤️');
+            }
+            
+            document.getElementById('favoritesCount').textContent = favorites.length;
+        }
+
+        // Update favorite button state
+        function updateFavoriteButton() {
+            if (!currentJoke) return;
+            
+            const favoriteBtn = document.getElementById('favoriteBtn');
+            const isFavorite = favorites.some(f => f.text === currentJoke.text);
+            
+            if (isFavorite) {
+                favoriteBtn.innerHTML = '<i class="fas fa-heart"></i> Favorited';
+            } else {
+                favoriteBtn.innerHTML = '<i class="far fa-heart"></i> Favorite';
+            }
+        }
+
+        // Share joke
+        function shareJoke() {
+            if (!currentJoke) return;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this joke!',
+                    text: currentJoke.text,
+                    url: window.location.href
+                });
+            } else {
+                copyJoke();
+                showToast('Joke copied to clipboard! 📋');
+            }
+        }
+
+        // Copy joke
+        function copyJoke() {
+            if (!currentJoke) return;
+            
+            navigator.clipboard.writeText(currentJoke.text).then(() => {
+                showToast('Joke copied! 📋');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Start auto-play
+        function startAutoPlay() {
+            if (autoPlayInterval) clearInterval(autoPlayInterval);
+            autoPlayInterval = setInterval(() => {
+                if (document.visibilityState === 'visible' && isAutoPlaying) {
+                    getNewJoke();
+                }
+            }, autoPlayDelay);
+        }
+
+        // Stop auto-play
+        function stopAutoPlay() {
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+            }
+        }
+
+        // Toggle auto-play
+        function toggleAutoPlay() {
+            const autoPlayBtn = document.getElementById('autoPlayBtn');
+            
+            if (isAutoPlaying) {
+                stopAutoPlay();
+                isAutoPlaying = false;
+                autoPlayBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+                showToast('Auto-play paused ⏸️');
+            } else {
+                startAutoPlay();
+                isAutoPlaying = true;
+                autoPlayBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                showToast('Auto-play resumed ▶️');
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                getNewJoke();
+            } else if (e.code === 'KeyF') {
+                e.preventDefault();
+                toggleFavorite();
+            } else if (e.code === 'KeyP') {
+                e.preventDefault();
+                toggleAutoPlay();
+            }
+        });
+
+        // Load first joke and start auto-play
+        setTimeout(() => {
+            getNewJoke();
+            startAutoPlay();
+        }, 2500);
+    </script>
+</body>
+</html>
