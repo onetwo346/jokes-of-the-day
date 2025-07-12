@@ -226,18 +226,6 @@
             color: #fff;
         }
 
-        .joke-category {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: var(--accent);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
         /* Controls */
         .controls {
             display: flex;
@@ -440,7 +428,6 @@
 
         <main class="joke-section">
             <div class="joke-card" id="jokeCard">
-                <div class="joke-category" id="jokeCategory">Random</div>
                 <div class="joke-text" id="jokeText">
                     Click the button to get your first joke!
                 </div>
@@ -563,16 +550,13 @@
                 if (joke) {
                     currentJoke = joke;
                     seenJokes.add(joke.text);
-                    categories.add(joke.category);
                     jokesSeen++;
                     
                     // Update display
                     jokeText.textContent = joke.text;
-                    document.getElementById('jokeCategory').textContent = joke.category;
                     
                     // Update stats
                     document.getElementById('jokesSeen').textContent = jokesSeen;
-                    document.getElementById('uniqueCategories').textContent = categories.size;
                     
                     // Add fade-in animation
                     jokeCard.classList.remove('shake');
